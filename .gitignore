@@ -11,4 +11,4 @@ BuildingEscape/Content/StarterContent/
 ######################
 # VS Generated Files #
 ######################
-*/.vs
+*.VC.db
