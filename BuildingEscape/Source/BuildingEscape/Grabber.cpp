@@ -28,9 +28,24 @@ void UGrabber::BeginPlay()
 void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
+	// Get player view point this tick
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
 
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
+		OUT PlayerViewPointLocation,
+		OUT PlayerViewPointRotation
+	);
+
+
+	FVector LineTraceEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
 	// if the physics handle is attaching 
+	if (PhysicsHandle->GrabbedComponent) {
 		//move the object that we're hoding 
+		PhysicsHandle->SetTargetLocation(LineTraceEnd);
+
+	}
 }
 
 // look for attached Physics Handle
@@ -60,15 +75,25 @@ void UGrabber::Grab() {
 	UE_LOG(LogTemp, Warning, TEXT("Grab() is calling"));
 
 	/// LINE TRACE and see if we reach any actors with physics body collision channel set 
-	GetFirstPhysicsBodyInReach();
+	auto HitResult = GetFirstPhysicsBodyInReach();
+	auto ComponentToGrab = HitResult.GetComponent();
+	auto ActorHit = HitResult.GetActor();
 
 	// if we hit something then attach a physics handle
-		// TODO attach physics handle
+	if (ActorHit) {
+		// attach physics handle
+		PhysicsHandle->GrabComponentAtLocation(
+			ComponentToGrab,
+			NAME_None,
+			ComponentToGrab->GetOwner()->GetActorLocation()
+		);
+	}	
 }
 
 void UGrabber::Release() {
 	UE_LOG(LogTemp, Warning, TEXT("Release() is calling"));
-	// TODO release physics handle
+	// release physics handle
+	PhysicsHandle->ReleaseComponent();
 }
 
 
@@ -102,7 +127,6 @@ FHitResult UGrabber::GetFirstPhysicsBodyInReach() const {
 	if (ActorHit) {
 		UE_LOG(LogTemp, Warning, TEXT("Line trance hit : %s"), *(ActorHit->GetName()));
 	}
-	
 	return Hit;
 }
 
