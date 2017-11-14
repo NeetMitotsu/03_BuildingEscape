@@ -29,6 +29,8 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
+	if (!PhysicsHandle) { return; }
+
 	// if the physics handle is attaching 
 	if (PhysicsHandle->GrabbedComponent) {
 		//move the object that we're hoding 
@@ -52,7 +54,7 @@ void UGrabber::SetupInputComponent() {
 		InputComponent->BindAction("Grab", IE_Pressed, this, &UGrabber::Grab);
 		InputComponent->BindAction("Grab", IE_Released, this, &UGrabber::Release);
 	} else {
-		UE_LOG(LogTemp, Error, TEXT("%s missing physics handle component"), *GetOwner()->GetName());
+		UE_LOG(LogTemp, Error, TEXT("%s missing InputComponent"), *GetOwner()->GetName());
 	}
 }
 
@@ -77,6 +79,7 @@ void UGrabber::Grab() {
 
 void UGrabber::Release() {
 	UE_LOG(LogTemp, Warning, TEXT("Release() is calling"));
+	if (!PhysicsHandle) { return; }
 	// release physics handle
 	PhysicsHandle->ReleaseComponent();
 }
